@@ -75,7 +75,7 @@ function deploy_contract() {
 
     # 设置 Bun 项目
     echo "设置 Bun 项目..."
-    mkdir -p ZunXBT && cd ZunXBT || exit
+    mkdir -p infinit && cd infinit || exit
     bun init -y
     bun add @infinit-xyz/cli
 
