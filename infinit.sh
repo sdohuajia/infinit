@@ -3,73 +3,111 @@
 # 脚本保存路径
 SCRIPT_PATH="$HOME/infinit.sh"
 
-# 检查 Node.js 版本
-NODE_VERSION=$(node -v 2>/dev/null)
+# 显示 Logo
+curl -s https://raw.githubusercontent.com/sdohuajia/Hyperlane/refs/heads/main/logo.sh | bash
+sleep 3
 
-if [ $? -ne 0 ] || [ "$(echo -e "$NODE_VERSION\nv22.0.0" | sort -V | head -n1)" != "v22.0.0" ]; then
-    echo "Node.js 版本低于 22.0.0，正在安装..."
+# 主菜单函数
+function main_menu() {
+    while true; do
+        clear
+        echo "脚本由推特 @ferdie_jhovie，免费开源，请勿相信收费"
+        echo "================================================================"
+        echo "节点社区 Telegram 群组: https://t.me/niuwuriji"
+        echo "节点社区 Telegram 频道: https://t.me/niuwuriji"
+        echo "节点社区 Discord 社群: https://discord.gg/GbMV5EcNWF"
+        echo "退出脚本，请按键盘 ctrl+c 退出即可"
+        echo "请选择要执行的操作:"
+        echo "1) 部署合约"
+        echo "2) 退出"
 
-    # 安装 nvm
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
+        read -p "请输入选择: " choice
 
-    # 加载 nvm
-    export NVM_DIR="$HOME/.nvm"
-    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+        case $choice in
+            1)
+                deploy_contract
+                ;;
+            2)
+                echo "退出脚本..."
+                exit 0
+                ;;
+            *)
+                echo "无效选择，请重试"
+                ;;
+        esac
+        read -n 1 -s -r -p "按任意键继续..."
+    done
+}
 
-    # 安装 Node.js 22
-    nvm install 22
-    nvm alias default 22
-    nvm use default
+# 部署合约
+function deploy_contract() {
+    # 检查 Node.js 版本
+    NODE_VERSION=$(node -v 2>/dev/null)
 
-    echo "Node.js 安装完成，当前版本: $(node -v)"
-else
-    echo "Node.js 已安装，当前版本: $NODE_VERSION"
-fi
+    if [ $? -ne 0 ] || [ "$(echo -e "$NODE_VERSION\nv22.0.0" | sort -V | head -n1)" != "v22.0.0" ]; then
+        echo "Node.js 版本低于 22.0.0，正在安装..."
 
-# 检查并安装 unzip
-sudo apt-get install -y unzip
+        # 安装 nvm
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
 
-# 检查并安装 Bun
-if ! command -v bun &> /dev/null; then
-    echo "Bun 未安装，正在安装..."
-    curl -fsSL https://bun.sh/install | bash
-    source /root/.bashrc
-    echo "Bun 安装完成"
-else
-    echo "Bun 已安装"
-fi
+        # 加载 nvm
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+        [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 
-# 创建项目目录并进入
-mkdir infinit
-cd infinit
+        # 安装 Node.js 22
+        nvm install 22
+        nvm alias default 22
+        nvm use default
 
-# 初始化 Bun 项目
-bun init -y
+        echo "Node.js 安装完成，当前版本: $(node -v)"
+    else
+        echo "Node.js 已安装，当前版本: $NODE_VERSION"
+    fi
 
-# 安装 @infinit-xyz/cli
-bun add @infinit-xyz/cli
+    # 检查并安装 unzip
+    sudo apt-get install -y unzip
 
-# 初始化 Infinit
-bunx infinit init
+    # 检查并安装 Bun
+    if ! command -v bun &> /dev/null; then
+        echo "Bun 未安装，正在安装..."
+        curl -fsSL https://bun.sh/install | bash
+        source /root/.bashrc
+        echo "Bun 安装完成"
+    else
+        echo "Bun 已安装"
+    fi
 
-# 创建账户
-ACCOUNT_ID=$(bunx infinit account generate)
+    # 创建项目目录并进入
+    mkdir -p infinit
+    cd infinit || exit
 
-# 显示私钥提示
-echo "Copy this private key and save it somewhere, this is the private key of this wallet"
-echo
-bunx infinit account export $ACCOUNT_ID
+    # 初始化 Bun 项目
+    bun init -y
 
-# 提示用户按任意键继续
-read -n 1 -s -r -p "Press any key to continue..."
+    # 安装 @infinit-xyz/cli
+    bun add @infinit-xyz/cli
 
-echo
-# 移除旧的 deployUniswapV3Action 脚本（如果存在）
-rm -rf src/scripts/deployUniswapV3Action.script.ts
+    # 初始化 Infinit
+    bunx infinit init
 
-# 创建新的 deployUniswapV3Action 脚本
-cat <<EOF > src/scripts/deployUniswapV3Action.script.ts
+    # 创建账户
+    ACCOUNT_ID=$(bunx infinit account generate)
+
+    # 显示私钥提示
+    echo "Copy this private key and save it somewhere, this is the private key of this wallet"
+    echo
+    bunx infinit account export $ACCOUNT_ID
+
+    # 提示用户按任意键继续
+    read -n 1 -s -r -p "按任意键继续..."
+
+    echo
+    # 移除旧的 deployUniswapV3Action 脚本（如果存在）
+    rm -rf src/scripts/deployUniswapV3Action.script.ts
+
+    # 创建新的 deployUniswapV3Action 脚本
+    cat <<EOF > src/scripts/deployUniswapV3Action.script.ts
 import { DeployUniswapV3Action, type actions } from '@infinit-xyz/uniswap-v3/actions'
 import type { z } from 'zod'
 
@@ -81,10 +119,10 @@ const params: Param = {
   "nativeCurrencyLabel": 'ETH',
 
   // Address of the owner of the proxy admin
-  "proxyAdminOwner": '$WALLET',
+  "proxyAdminOwner": '\$WALLET',
 
   // Address of the owner of factory
-  "factoryOwner": '$WALLET',
+  "factoryOwner": '\$WALLET',
 
   // Address of the wrapped native token (e.g., WETH)
   "wrappedNativeToken": '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
@@ -92,13 +130,20 @@ const params: Param = {
 
 // Signer configuration
 const signer = {
-  "deployer": "$ACCOUNT_ID"
+  "deployer": "\$ACCOUNT_ID"
 }
 
 export default { params, signer, Action: DeployUniswapV3Action }
 EOF
 
-# 执行 UniswapV3 Action 脚本
-echo "Executing the UniswapV3 Action script..."
-echo
-bunx infinit script execute deployUniswapV3Action.script.ts
+    # 执行 UniswapV3 Action 脚本
+    echo "Executing the UniswapV3 Action script..."
+    echo
+    bunx infinit script execute deployUniswapV3Action.script.ts
+    
+    # 等待用户按任意键以返回主菜单
+    read -p "按任意键返回主菜单..."
+}
+
+# 启动主菜单
+main_menu
