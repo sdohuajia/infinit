@@ -57,7 +57,7 @@ function deploy_contract() {
     if [ -s "$NVM_DIR/nvm.sh" ]; then
         source "$NVM_DIR/nvm.sh"
     else
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
         source "$NVM_DIR/nvm.sh"
     fi
 
@@ -79,8 +79,9 @@ function deploy_contract() {
     # 检查并安装 Bun
     if ! command -v bun &> /dev/null; then
         curl -fsSL https://bun.sh/install | bash
-        source "$HOME/.bashrc"  # 确保环境变量生效
         export PATH="$HOME/.bun/bin:$PATH"  # 更新 PATH
+        sleep 5
+        source "$HOME/.bashrc"  # 确保环境变量生效
     fi
 
     # 检查 Bun 是否存在
