@@ -3,9 +3,14 @@
 # 脚本保存路径
 SCRIPT_PATH="$HOME/infinit.sh"
 
+
 # 显示 Logo
 curl -s https://raw.githubusercontent.com/sdohuajia/Hyperlane/refs/heads/main/logo.sh | bash
 sleep 3
+
+# 更新系统并安装 unzip
+sudo apt update
+sudo apt install -y unzip
 
 # 主菜单函数
 function main_menu() {
