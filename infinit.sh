@@ -82,20 +82,19 @@ function deploy_contract() {
     mkdir -p infinit
     cd infinit || exit
 
-    # 初始化 Bun 项目
-    bun init -y
-
-    # 安装 @infinit-xyz/cli
-    bun add @infinit-xyz/cli
-
-    # 初始化 Infinit
+    # 初始化 Infinit CLI 并生成账户
+    echo "正在初始化 Infinit CLI 并生成帐户..."
     bunx infinit init
-
-    # 创建账户
     ACCOUNT_ID=$(bunx infinit account generate)
 
+    # 提示用户输入钱包地址和账户ID
+    read -p "你的钱包地址是什么 （输入上一步中的地址）: " WALLET
+    echo
+    read -p "你的账户ID是什么 （在上一步输入）: " ACCOUNT_ID
+    echo
+
     # 显示私钥提示
-    echo "Copy this private key and save it somewhere, this is the private key of this wallet"
+    echo "复制这个私钥并保存在某个地方，这是这个钱包的私钥"
     echo
     bunx infinit account export $ACCOUNT_ID
 
@@ -137,7 +136,7 @@ export default { params, signer, Action: DeployUniswapV3Action }
 EOF
 
     # 执行 UniswapV3 Action 脚本
-    echo "Executing the UniswapV3 Action script..."
+    echo "正在执行 UniswapV3 Action 脚本..."
     echo
     bunx infinit script execute deployUniswapV3Action.script.ts
     
