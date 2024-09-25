@@ -109,7 +109,7 @@ function deploy_contract() {
     rm -rf src/scripts/deployUniswapV3Action.script.ts
 
     # 创建新的 deployUniswapV3Action 脚本
-    cat <<EOF > src/scripts/deployUniswapV3Action.script.ts
+cat <<EOF > src/scripts/deployUniswapV3Action.script.ts
 import { DeployUniswapV3Action, type actions } from '@infinit-xyz/uniswap-v3/actions'
 import type { z } from 'zod'
 
@@ -121,10 +121,10 @@ const params: Param = {
   "nativeCurrencyLabel": 'ETH',
 
   // Address of the owner of the proxy admin
-  "proxyAdminOwner": '\$WALLET',
+  "proxyAdminOwner": '$WALLET',
 
   // Address of the owner of factory
-  "factoryOwner": '\$WALLET',
+  "factoryOwner": '$WALLET',
 
   // Address of the wrapped native token (e.g., WETH)
   "wrappedNativeToken": '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
@@ -132,7 +132,7 @@ const params: Param = {
 
 // Signer configuration
 const signer = {
-  "deployer": "\$ACCOUNT_ID"
+  "deployer": '$ACCOUNT_ID'
 }
 
 export default { params, signer, Action: DeployUniswapV3Action }
