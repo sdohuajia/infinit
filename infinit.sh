@@ -52,26 +52,36 @@ function check_install() {
 
 # 部署合约
 function deploy_contract() {
+    # 检查并安装 NVM
     export NVM_DIR="$HOME/.nvm"
     
-    # 检查并安装 NVM
     if [ -s "$NVM_DIR/nvm.sh" ]; then
         echo "加载 NVM..."
         source "$NVM_DIR/nvm.sh"
     else
         echo "未找到 NVM，正在安装 NVM..."
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
         source "$NVM_DIR/nvm.sh"
     fi
 
     # 检查并安装 Node.js
-    check_install "node" "nvm install 22 && nvm alias default 22 && nvm use default"
-
-    # 检查并安装 Foundry
-    check_install "foundryup" "curl -L https://foundry.paradigm.xyz | bash && export PATH=\"\$HOME/.foundry/bin:\$PATH\" && foundryup"
+    if ! command -v node &> /dev/null; then
+        echo "Node.js 未安装，正在安装 Node.js 22..."
+        nvm install 22
+        nvm alias default 22
+        nvm use default
+    else
+        echo "Node.js 已安装"
+    fi
 
     # 检查并安装 Bun
-    check_install "bun" "curl -fsSL https://bun.sh/install | bash && export PATH=\"\$HOME/.bun/bin:\$PATH\""
+    if ! command -v bun &> /dev/null; then
+        echo "Bun 未安装，正在安装 Bun..."
+        curl -fsSL https://bun.sh/install | bash
+        source "$HOME/.bashrc"  # 或者使用 source "$HOME/.profile"
+    else
+        echo "Bun 已安装"
+    fi
 
     # 设置 Bun 项目
     echo "设置 Bun 项目..."
@@ -85,16 +95,12 @@ function deploy_contract() {
     # 生成钱包并保存地址
     ACCOUNT_ID=$(bunx infinit account generate)
 
-    read -p "你的钱包地址是什么（输入上一步中的地址）: " WALLET
-    echo
-    read -p "你的账户 ID 是什么（在上一步输入）: " ACCOUNT_ID
-    echo
-
     echo "复制这个私钥并保存在某个地方，这是这个钱包的私钥"
     bunx infinit account export "$ACCOUNT_ID"
 
     sleep 5
     echo
+
     # 移除旧的 deployUniswapV3Action 脚本（如果存在）
     rm -rf src/scripts/deployUniswapV3Action.script.ts
 
@@ -106,16 +112,9 @@ type Param = z.infer<typeof actions['init']['paramsSchema']>
 
 // TODO: Replace with actual params
 const params: Param = {
-  // Native currency label (e.g., ETH)
   "nativeCurrencyLabel": 'ETH',
-
-  // Address of the owner of the proxy admin
   "proxyAdminOwner": '$WALLET',
-
-  // Address of the owner of factory
   "factoryOwner": '$WALLET',
-
-  // Address of the wrapped native token (e.g., WETH)
   "wrappedNativeToken": '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
 }
 
@@ -133,6 +132,5 @@ EOF
     # 等待用户按任意键以返回主菜单
     read -p "按任意键返回主菜单..."
 }
-
 # 启动主菜单
 main_menu
