@@ -57,7 +57,7 @@ function check_install() {
 
 # 让用户选择 RPC URL
 function select_rpc() {
-    echo "请选择 RPC URL（使用方向键选择并按 Enter 确认）:"
+    echo "请选择 RPC URL（选择数字并按 Enter 确认）:"
     PS3="请选择一个选项: "
     options=("https://1rpc.io/holesky" "https://endpoints.omniatech.io/v1/eth/holesky/public" "https://ethereum-holesky-rpc.publicnode.com")
     
