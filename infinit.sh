@@ -39,80 +39,64 @@ function main_menu() {
     done
 }
 
+# 检查并安装命令
+function check_install() {
+    command -v "$1" &> /dev/null
+    if [ $? -ne 0 ]; then
+        echo "$1 未安装，正在安装..."
+        eval "$2"
+    else
+        echo "$1 已安装"
+    fi
+}
+
 # 部署合约
 function deploy_contract() {
-    # 检查 Node.js 版本
-    NODE_VERSION=$(node -v 2>/dev/null)
-
-    if [ $? -ne 0 ] || [ "$(echo -e "$NODE_VERSION\nv22.0.0" | sort -V | head -n1)" != "v22.0.0" ]; then
-        echo "Node.js 版本低于 22.0.0，正在安装..."
-
-        # 安装 nvm
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
-
-        # 加载 nvm
-        export NVM_DIR="$HOME/.nvm"
-        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-        [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-
-        # 安装 Node.js 22
-        nvm install 22
-        nvm alias default 22
-        nvm use default
-
-        echo "Node.js 安装完成，当前版本: $(node -v)"
+    export NVM_DIR="$HOME/.nvm"
+    
+    # 检查并安装 NVM
+    if [ -s "$NVM_DIR/nvm.sh" ]; then
+        echo "加载 NVM..."
+        source "$NVM_DIR/nvm.sh"
     else
-        echo "Node.js 已安装，当前版本: $NODE_VERSION"
+        echo "未找到 NVM，正在安装 NVM..."
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
+        source "$NVM_DIR/nvm.sh"
     fi
 
-    # 检查并安装 unzip
-    sudo apt-get install -y unzip
+    # 检查并安装 Node.js
+    check_install "node" "nvm install 22 && nvm alias default 22 && nvm use default"
 
-    # 安装 Bun
-if ! command -v bun &> /dev/null; then
-    echo "Bun 未安装，正在安装..."
-    curl -fsSL https://bun.sh/install | bash
-    # 加载 Bun
-    export PATH="$HOME/.bun/bin:$PATH"
-    # 加一个延迟，以确保路径更新
-    sleep 2
-    echo "Bun 安装完成"
-else
-    echo "Bun 已安装"
-fi
+    # 检查并安装 Foundry
+    check_install "foundryup" "curl -L https://foundry.paradigm.xyz | bash && export PATH=\"\$HOME/.foundry/bin:\$PATH\" && foundryup"
 
-    # 创建项目目录并进入
-    mkdir -p infinit
-    cd infinit || exit
+    # 检查并安装 Bun
+    check_install "bun" "curl -fsSL https://bun.sh/install | bash && export PATH=\"\$HOME/.bun/bin:\$PATH\""
 
-    # 初始化 Bun 项目
+    # 设置 Bun 项目
+    echo "设置 Bun 项目..."
+    mkdir -p ZunXBT && cd ZunXBT || exit
     bun init -y
     bun add @infinit-xyz/cli
-    echo
+
     echo "正在初始化 Infinit CLI 并生成帐户..."
     bunx infinit init
     ACCOUNT_ID=$(bunx infinit account generate)
 
-    # 提示用户输入钱包地址和账户ID
-    read -p "你的钱包地址是什么 （输入上一步中的地址）: " WALLET
+    read -p "你的钱包地址是什么（输入上一步中的地址）: " WALLET
     echo
-    read -p "你的账户ID是什么 （在上一步输入）: " ACCOUNT_ID
+    read -p "你的账户 ID 是什么（在上一步输入）: " ACCOUNT_ID
     echo
 
-    # 显示私钥提示
     echo "复制这个私钥并保存在某个地方，这是这个钱包的私钥"
-    echo
-    bunx infinit account export $ACCOUNT_ID
+    bunx infinit account export "$ACCOUNT_ID"
 
-    # 提示用户按任意键继续
-    read -n 1 -s -r -p "按任意键继续..."
-
+    sleep 5
     echo
     # 移除旧的 deployUniswapV3Action 脚本（如果存在）
     rm -rf src/scripts/deployUniswapV3Action.script.ts
 
-    # 创建新的 deployUniswapV3Action 脚本
-cat <<EOF > src/scripts/deployUniswapV3Action.script.ts
+    cat <<EOF > src/scripts/deployUniswapV3Action.script.ts
 import { DeployUniswapV3Action, type actions } from '@infinit-xyz/uniswap-v3/actions'
 import type { z } from 'zod'
 
@@ -135,17 +119,15 @@ const params: Param = {
 
 // Signer configuration
 const signer = {
-  "deployer": '$ACCOUNT_ID'
+  "deployer": "$ACCOUNT_ID"
 }
 
 export default { params, signer, Action: DeployUniswapV3Action }
 EOF
 
-    # 执行 UniswapV3 Action 脚本
     echo "正在执行 UniswapV3 Action 脚本..."
-    echo
     bunx infinit script execute deployUniswapV3Action.script.ts
-    
+
     # 等待用户按任意键以返回主菜单
     read -p "按任意键返回主菜单..."
 }
