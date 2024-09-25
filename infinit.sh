@@ -69,14 +69,15 @@ function deploy_contract() {
     sudo apt-get install -y unzip
 
     # 检查并安装 Bun
-    if ! command -v bun &> /dev/null; then
-        echo "Bun 未安装，正在安装..."
-        curl -fsSL https://bun.sh/install | bash
-        source /root/.bashrc
-        echo "Bun 安装完成"
-    else
-        echo "Bun 已安装"
-    fi
+if ! command -v bun &> /dev/null; then
+    echo "Bun 未安装，正在安装..."
+    curl -fsSL https://bun.sh/install | bash
+    # 加载 Bun
+    export PATH="$HOME/.bun/bin:$PATH"
+    echo "Bun 安装完成"
+else
+    echo "Bun 已安装"
+fi
 
     # 创建项目目录并进入
     mkdir -p infinit
