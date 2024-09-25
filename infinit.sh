@@ -81,6 +81,8 @@ function deploy_contract() {
 
     echo "正在初始化 Infinit CLI 并生成帐户..."
     bunx infinit init
+
+    # 生成钱包并保存地址
     ACCOUNT_ID=$(bunx infinit account generate)
 
     read -p "你的钱包地址是什么（输入上一步中的地址）: " WALLET
