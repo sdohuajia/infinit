@@ -54,37 +54,34 @@ function check_install() {
 function deploy_contract() {
     # 检查并安装 NVM
     export NVM_DIR="$HOME/.nvm"
-    
     if [ -s "$NVM_DIR/nvm.sh" ]; then
-        echo "加载 NVM..."
         source "$NVM_DIR/nvm.sh"
     else
-        echo "未找到 NVM，正在安装 NVM..."
         curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
         source "$NVM_DIR/nvm.sh"
     fi
 
     # 检查并安装 Node.js
     if ! command -v node &> /dev/null; then
-        echo "Node.js 未安装，正在安装 Node.js 22..."
         nvm install 22
         nvm alias default 22
         nvm use default
-    else
-        echo "Node.js 已安装"
     fi
 
     # 检查并安装 Bun
     if ! command -v bun &> /dev/null; then
-        echo "Bun 未安装，正在安装 Bun..."
         curl -fsSL https://bun.sh/install | bash
-        source "$HOME/.bashrc"  # 或者使用 source "$HOME/.profile"
-    else
-        echo "Bun 已安装"
+        source "$HOME/.bashrc"
+        export PATH="$HOME/.bun/bin:$PATH"
+    fi
+
+    # 确认 Bun 已安装
+    if ! command -v bun &> /dev/null; then
+        echo "Bun 未安装，安装可能失败，请检查安装步骤"
+        exit 1
     fi
 
     # 设置 Bun 项目
-    echo "设置 Bun 项目..."
     mkdir -p infinit && cd infinit || exit
     bun init -y
     bun add @infinit-xyz/cli
@@ -94,12 +91,16 @@ function deploy_contract() {
 
     # 生成钱包并保存地址
     ACCOUNT_ID=$(bunx infinit account generate)
+    echo "你的账户 ID 是: $ACCOUNT_ID"
 
     echo "复制这个私钥并保存在某个地方，这是这个钱包的私钥"
     bunx infinit account export "$ACCOUNT_ID"
 
     sleep 5
     echo
+
+    # 创建脚本目录
+    mkdir -p src/scripts
 
     # 移除旧的 deployUniswapV3Action 脚本（如果存在）
     rm -rf src/scripts/deployUniswapV3Action.script.ts
@@ -110,7 +111,6 @@ import type { z } from 'zod'
 
 type Param = z.infer<typeof actions['init']['paramsSchema']>
 
-// TODO: Replace with actual params
 const params: Param = {
   "nativeCurrencyLabel": 'ETH',
   "proxyAdminOwner": '$WALLET',
@@ -118,7 +118,6 @@ const params: Param = {
   "wrappedNativeToken": '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
 }
 
-// Signer configuration
 const signer = {
   "deployer": "$ACCOUNT_ID"
 }
@@ -129,8 +128,8 @@ EOF
     echo "正在执行 UniswapV3 Action 脚本..."
     bunx infinit script execute deployUniswapV3Action.script.ts
 
-    # 等待用户按任意键以返回主菜单
     read -p "按任意键返回主菜单..."
 }
+
 # 启动主菜单
 main_menu
