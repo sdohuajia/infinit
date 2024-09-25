@@ -67,7 +67,15 @@ function deploy_contract() {
         nvm alias default 22
         nvm use default
     fi
-
+    
+    show "安装 Foundry..."
+    echo
+    curl -L https://foundry.paradigm.xyz | bash
+    export PATH="$HOME/.foundry/bin:$PATH"
+    sleep 5
+    source ~/.bashrc
+    foundryup
+    
     # 检查并安装 Bun
     if ! command -v bun &> /dev/null; then
         curl -fsSL https://bun.sh/install | bash
@@ -105,7 +113,8 @@ function deploy_contract() {
     # Removing old deployUniswapV3Action script if exists
     rm -rf src/scripts/deployUniswapV3Action.script.ts
 
-    cat <<EOF > src/scripts/deployUniswapV3Action.script.ts
+    
+cat <<EOF > src/scripts/deployUniswapV3Action.script.ts
 import { DeployUniswapV3Action, type actions } from '@infinit-xyz/uniswap-v3/actions'
 import type { z } from 'zod'
 
