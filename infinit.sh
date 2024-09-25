@@ -52,8 +52,8 @@ function check_install() {
 
 # 部署合约
 function deploy_contract() {
-    # 检查并安装 NVM
     export NVM_DIR="$HOME/.nvm"
+    
     if [ -s "$NVM_DIR/nvm.sh" ]; then
         source "$NVM_DIR/nvm.sh"
     else
@@ -71,11 +71,11 @@ function deploy_contract() {
     # 检查并安装 Bun
     if ! command -v bun &> /dev/null; then
         curl -fsSL https://bun.sh/install | bash
-        source "$HOME/.bashrc"
-        export PATH="$HOME/.bun/bin:$PATH"
+        source "$HOME/.bashrc"  # 确保环境变量生效
+        export PATH="$HOME/.bun/bin:$PATH"  # 更新 PATH
     fi
 
-    # 确认 Bun 已安装
+    # 检查 Bun 是否存在
     if ! command -v bun &> /dev/null; then
         echo "Bun 未安装，安装可能失败，请检查安装步骤"
         exit 1
@@ -88,21 +88,22 @@ function deploy_contract() {
 
     echo "正在初始化 Infinit CLI 并生成帐户..."
     bunx infinit init
+    bunx infinit account generate
+    echo
 
-    # 生成钱包并保存地址
-    ACCOUNT_ID=$(bunx infinit account generate)
-    echo "你的账户 ID 是: $ACCOUNT_ID"
+    read -p "您的钱包地址是什么（输入上面步骤中的地址） : " WALLET
+    echo
+    read -p "您的帐户 ID 是什么（在上面的步骤中输入） : " ACCOUNT_ID
+    echo
 
-    echo "复制这个私钥并保存在某个地方，这是这个钱包的私钥"
-    bunx infinit account export "$ACCOUNT_ID"
+    show "复制这个私钥并保存在某个地方，这是这个钱包的私钥"
+    echo
+    bunx infinit account export $ACCOUNT_ID
 
     sleep 5
     echo
 
-    # 创建脚本目录
     mkdir -p src/scripts
-
-    # 移除旧的 deployUniswapV3Action 脚本（如果存在）
     rm -rf src/scripts/deployUniswapV3Action.script.ts
 
     cat <<EOF > src/scripts/deployUniswapV3Action.script.ts
