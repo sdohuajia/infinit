@@ -68,12 +68,14 @@ function deploy_contract() {
     # 检查并安装 unzip
     sudo apt-get install -y unzip
 
-    # 检查并安装 Bun
+    # 安装 Bun
 if ! command -v bun &> /dev/null; then
     echo "Bun 未安装，正在安装..."
     curl -fsSL https://bun.sh/install | bash
     # 加载 Bun
     export PATH="$HOME/.bun/bin:$PATH"
+    # 加一个延迟，以确保路径更新
+    sleep 2
     echo "Bun 安装完成"
 else
     echo "Bun 已安装"
